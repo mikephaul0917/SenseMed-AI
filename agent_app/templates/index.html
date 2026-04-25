@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SenseMed AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body data-drugs='{{ drugs_data|tojson|safe }}'>
+    <nav class="top-nav">
+        <div class="top-nav-left">
+            <div class="header-logo-group nav-logo">
+                <div class="logo-v3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="sparkle-svg">
+                        <path
+                            d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                        <path d="M5 3v4" />
+                        <path d="M19 17v4" />
+                        <path d="M3 5h4" />
+                        <path d="M17 19h4" />
+                    </svg>
+                </div>
+                SenseMed AI
+            </div>
+        </div>
+        <div class="top-nav-right">
+            <button class="sidebar-toggle" id="mainToggle" onclick="toggleSidebar()" data-tooltip="Toggle Search History">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <line x1="15" y1="3" x2="15" y2="21" />
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+
+
+    <aside id="sidebar">
+        <div class="sidebar-header">
+            <div class="header-logo-group">
+                <div class="logo-v3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="sparkle-svg">
+                        <path
+                            d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                        <path d="M5 3v4" />
+                        <path d="M19 17v4" />
+                        <path d="M3 5h4" />
+                        <path d="M17 19h4" />
+                    </svg>
+                </div>
+                SenseMed AI
+            </div>
+            <button class="sidebar-toggle-inner" onclick="toggleSidebar()" data-tooltip="Close Sidebar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <line x1="15" y1="3" x2="15" y2="21" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="new-chat-btn" onclick="window.location.reload()">
+            <span>New Search</span>
+        </div>
+
+        <div class="sidebar-label">Recent Medicines</div>
+        <div class="drug-list" id="sidebarList">
+            {% for drug in drugs_data %}
+            <div class="drug-item drug-trigger" data-id="{{ drug.id }}" id="nav-{{ drug.id }}">
+                <span>{{ drug.name }}</span>
+                <span class="delete-btn delete-trigger" data-id="{{ drug.id }}">&times;</span>
+            </div>
+            {% endfor %}
+        </div>
+    </aside>
+
+    <main>
+        <div class="center-area" id="homeView">
+            <div class="hero-sparkle">
+                <div class="sparkle-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="sparkle-svg">
+                        <path
+                            d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                        <path d="M5 3v4" />
+                        <path d="M19 17v4" />
+                        <path d="M3 5h4" />
+                        <path d="M17 19h4" />
+                    </svg>
+                </div>
+            </div>
+            <div class="hero">
+                <h2>How can I help today?</h2>
+                <p class="hero-subtitle">Analyze medication profiles and clinical trial data in real-time.</p>
+            </div>
+
+            <!-- Quick Guide Section -->
+            <div class="quick-guide">
+                <div class="guide-card" onclick="document.getElementById('query').focus()">
+                    <div class="guide-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="guide-svg">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.3-4.3" />
+                        </svg>
+                    </div>
+                    <h4>Search</h4>
+                    <p>Enter any drug name to pull live clinical trial data.</p>
+                </div>
+                <div class="guide-card" onclick="showSampleDrug()">
+                    <div class="guide-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="guide-svg">
+                            <path d="M3 3v18h18" />
+                            <path d="m19 9-5 5-4-4-3 3" />
+                        </svg>
+                    </div>
+                    <h4>Analyze</h4>
+                    <p>Review System Impact Radar to see bodily effects.</p>
+                </div>
+                <div class="guide-card" onclick="toggleSidebar()">
+                    <div class="guide-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="guide-svg">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                            <path d="M3 3v5h5" />
+                            <path d="M12 7v5l4 2" />
+                        </svg>
+                    </div>
+                    <h4>History</h4>
+                    <p>Track recent searches in the sidebar for quick access.</p>
+                </div>
+            </div>
+
+            <div class="loading-text" id="loading">SenseMed is searching global databases...</div>
+            <div class="disclaimer-text">
+                SenseMed AI may contain errors. Please verify important medical information.
+            </div>
+
+        </div>
+
+        <div class="drug-details-card" id="detailView">
+
+            <h3 id="detailTitle">Medicine Name</h3>
+            <div id="drugDescriptionBox" class="drug-description-box" style="display: none;">
+                <div class="description-icon">i</div>
+                <div class="description-content" id="drugDescription">
+                    <strong>Medical Overview:</strong>
+                    <span id="overviewText">Description goes here...</span>
+                    <!-- Medical warning stays but moved to intelligence section below for better flow -->
+                </div>
+            </div>
+
+            <div id="intelligenceGrid" class="intelligence-grid" style="display: none;">
+                <div class="intel-card pro-tip">
+                    <div class="intel-header">
+                        <span class="intel-icon">💡</span>
+                        <strong>SenseMed Pro Tip</strong>
+                    </div>
+                    <p id="proTipText">Loading clinical insights...</p>
+                </div>
+                <div class="intel-card dosage-box">
+                    <div class="intel-header">
+                        <span class="intel-icon">💊</span>
+                        <strong>Usage & Dosage Snapshot</strong>
+                    </div>
+                    <p id="dosageText">Analyzing standard guidelines...</p>
+                </div>
+            </div>
+
+            <div id="medicalWarning"
+                style="font-size: 0.7rem; opacity: 0.6; margin-top: 0.5rem; font-style: italic; text-align: center; display: none;">
+                SenseMed AI may contain errors. Please verify important medical information.
+            </div>
+
+            <div class="report-actions">
+                <button class="btn-csv" id="downloadCsvBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Download CSV
+                </button>
+                <button class="btn-view-report" id="viewFullBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    View Full Medical Report
+                </button>
+            </div>
+
+            <p class="sidebar-label detail-header-label">Side Effect Risk Profile</p>
+
+            <div class="charts-container">
+                <div class="chart-box">
+                    <p class="sidebar-label chart-title">Risk Probability Profile</p>
+                    <canvas id="mainChart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <p class="sidebar-label chart-title">System Impact Radar</p>
+                    <canvas id="radarChart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <p class="sidebar-label chart-title">Severity vs. Probability</p>
+                    <canvas id="scatterChart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <p class="sidebar-label chart-title">Patient Demographic Risk</p>
+                    <canvas id="demographicChart"></canvas>
+                    <div class="chart-legend-box">
+                        <strong>Key:</strong>
+                        <ul class="legend-list">
+                            <li><span class="legend-key x1-key">x1.0 (Baseline):</span> Average risk observed in
+                                clinical studies.</li>
+                            <li><span class="legend-key red-key">> x1.0:</span> Increased risk for this specific
+                                demographic.</li>
+                            <li><span class="legend-key green-key">
+                                    < x1.0:</span> Lower risk relative to the general population.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+    </main>
+
+    <div class="floating-search-bar" id="floatingSearch">
+        <div class="search-pill">
+            <input type="text" id="query" placeholder="Search a medicine here...">
+            <button class="search-btn-pill" id="searchBtn" onclick="sendQuery()" title="Analyze Medicine">
+                <span id="btnText">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m5 12 7-7 7 7" />
+                        <path d="M12 19V5" />
+                    </svg>
+                </span>
+                <div class="spinner" id="btnSpinner"></div>
+            </button>
+        </div>
+    </div>
+
+    <div class="modal" id="detailsModal">
+        <button class="modal-close-btn" onclick="closeModal()" title="Close Report">&times;</button>
+        <div class="modal-content">
+            <h2 id="modalTitle" style="margin-bottom: 0.5rem;">Report Details</h2>
+            <p class="sidebar-label" style="margin-bottom: 2rem;">Full Side Effect Compilation</p>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const isMobile = window.innerWidth <= 1024;
+        let allDrugs = JSON.parse(document.body.dataset.drugs);
+        let activeChart = null;
+        let activeRadarChart = null;
+
+        const RADAR_CATEGORIES = [
+            'Gastrointestinal', 'Neurological', 'Cardiovascular',
+            'Respiratory', 'Musculoskeletal', 'Immunological',
+            'Metabolic', 'General'
+        ];
+
+        function refreshUI(newDrugs) {
+            allDrugs = newDrugs;
+            const sidebarList = document.getElementById('sidebarList');
+            sidebarList.innerHTML = '';
+
+            allDrugs.forEach(drug => {
+                const item = document.createElement('div');
+                item.className = 'drug-item drug-trigger';
+                item.dataset.id = drug.id;
+                item.id = `nav-${drug.id}`;
+                item.innerHTML = `
+                    <span>${drug.name}</span>
+                    <span class="delete-btn delete-trigger" data-id="${drug.id}">&times;</span>
+                `;
+                sidebarList.appendChild(item);
+            });
+        }
+
+        async function deleteDrug(id) {
+            if (!confirm('Are you sure you want to remove this medicine?')) return;
+
+            try {
+                const response = await fetch(`/api/drugs/${id}`, { method: 'DELETE' });
+                const data = await response.json();
+
+                if (data.status === 'deleted') {
+                    // Get name before refresh
+                    const drugToRemove = allDrugs.find(d => d.id === id);
+                    const drugName = drugToRemove ? drugToRemove.name : "";
+
+                    refreshUI(data.drugs);
+
+                    // If we were viewing this drug, go back to home
+                    const detailView = document.getElementById('detailView');
+                    const detailTitle = document.getElementById('detailTitle').innerText;
+
+                    if (detailView.style.display === 'flex' && detailTitle === drugName) {
+                        closeDetails();
+                    }
+                }
+            } catch (err) {
+                console.error("Delete failed:", err);
+            }
+        }
+
+        function selectDrug(id) {
+            const drug = allDrugs.find(d => d.id === id);
+            if (!drug) return;
+
+            // Update UI State
+            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('detailView').style.display = 'flex';
+            document.getElementById('detailTitle').innerText = drug.name;
+            if (document.getElementById('floatingSearch')) {
+                document.getElementById('floatingSearch').style.display = 'none';
+            }
+
+            // Update Description Box & Intelligence
+            const descBox = document.getElementById('drugDescriptionBox');
+            const intelGrid = document.getElementById('intelligenceGrid');
+            const warning = document.getElementById('medicalWarning');
+
+            if (drug.description || drug.pro_tip || drug.dosage_snapshot) {
+                descBox.style.display = drug.description ? 'flex' : 'none';
+                if (drug.description) document.getElementById('overviewText').innerText = drug.description;
+
+                intelGrid.style.display = 'grid';
+                document.getElementById('proTipText').innerText = drug.pro_tip || "Search initiated for clinical insights...";
+                document.getElementById('dosageText').innerText = drug.dosage_snapshot || "Guidelines pending AI review...";
+
+                warning.style.display = 'block';
+            } else {
+                descBox.style.display = 'none';
+                intelGrid.style.display = 'none';
+                warning.style.display = 'none';
+            }
+
+            // Highlight in sidebar
+            document.querySelectorAll('.drug-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`nav-${id}`).classList.add('active');
+
+            // Set up Full Report button
+            document.getElementById('viewFullBtn').onclick = () => showModal(drug);
+            document.getElementById('downloadCsvBtn').onclick = () => {
+                window.location.href = `/api/drugs/${drug.id}/csv`;
+            };
+
+            // Render Charts
+            renderChart(drug);
+            renderRadarChart(drug);
+            renderScatterChart(drug);
+            renderDemographicChart(drug);
+        }
+
+        function renderRadarChart(drug) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            if (activeRadarChart) activeRadarChart.destroy();
+
+            // Aggregate max probability per category
+            const categoryScores = RADAR_CATEGORIES.map(cat => {
+                const results = drug.side_effects.filter(s => s.category === cat);
+                if (results.length === 0) return 0;
+                return Math.max(...results.map(r => r.probability));
+            });
+
+            activeRadarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: RADAR_CATEGORIES,
+                    datasets: [{
+                        label: 'System Impact (%)',
+                        data: categoryScores,
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: '#3b82f6',
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: isMobile ? 15 : 0
+                    },
+                    scales: {
+                        r: {
+                            angleLines: { color: '#9ca3af' }, // Darker for visibility
+                            grid: { color: '#d1d5db' },      // Darker for visibility
+                            pointLabels: {
+                                color: '#374151',
+                                font: {
+                                    size: isMobile ? 9 : 11,
+                                    weight: '600'
+                                }
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function renderChart(drug) {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+
+            if (activeChart) {
+                activeChart.destroy();
+            }
+
+            const sortedEffects = [...drug.side_effects].sort((a, b) => b.probability - a.probability);
+            const labels = sortedEffects.map(s => s.name);
+            const values = sortedEffects.map(s => s.probability);
+
+            activeChart = new Chart(ctx, {
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Sticks',
+                            data: values,
+                            backgroundColor: '#3b82f6',
+                            barThickness: 2,
+                            borderRadius: 2
+                        },
+                        {
+                            type: 'scatter',
+                            label: 'Probability (%)',
+                            data: values.map((v, i) => ({ x: v, y: i })),
+                            pointRadius: 6,
+                            pointBackgroundColor: '#3b82f6',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            hoverRadius: 8,
+                            hoverBorderWidth: 3
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: isMobile ? { left: 10, right: 30, top: 10, bottom: 20 } : { left: 10, right: 30, top: 10, bottom: 20 }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#f3f4f6' },
+                            suggestedMax: 100,
+                            ticks: { font: { weight: '500', size: isMobile ? 10 : 12 } }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { font: { size: isMobile ? 9 : 11 } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1f2937',
+                            callbacks: {
+                                label: function (context) {
+                                    return ` Probability: ${context.parsed.x}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        let activeScatterChart = null;
+
+        function renderScatterChart(drug) {
+            const ctx = document.getElementById('scatterChart').getContext('2d');
+            if (activeScatterChart) activeScatterChart.destroy();
+
+            const dataPoints = drug.side_effects.map(s => ({
+                x: s.probability,
+                y: s.severity || 5.0,
+                label: s.name
+            }));
+
+            activeScatterChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Risk Profile',
+                        data: dataPoints,
+                        backgroundColor: '#3b82f6',
+                        pointRadius: 8,
+                        pointHoverRadius: 10,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: isMobile ? { bottom: 30, left: 10, right: 20, top: 10 } : 0
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Probability (%)',
+                                font: { weight: '600', size: isMobile ? 10 : 12 }
+                            },
+                            min: 0,
+                            max: 100,
+                            grid: { color: '#f3f4f6' },
+                            ticks: { font: { size: isMobile ? 9 : 11 } }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Severity (1-10)',
+                                font: { weight: '600', size: isMobile ? 10 : 12 }
+                            },
+                            min: 0,
+                            max: 10,
+                            grid: { color: '#f3f4f6' },
+                            ticks: { font: { size: isMobile ? 9 : 11 } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1f2937',
+                            callbacks: {
+                                label: function (context) {
+                                    const p = context.raw;
+                                    let risk = "Low Impact";
+                                    if (p.x > 50 && p.y > 5) risk = "HIGH RISK";
+                                    else if (p.x <= 50 && p.y > 5) risk = "Rare Danger";
+                                    else if (p.x > 50 && p.y <= 5) risk = "Common Annoyance";
+
+                                    return [
+                                        ` Effect: ${p.label}`,
+                                        ` Probability: ${p.x}%`,
+                                        ` Severity: ${p.y}/10`,
+                                        ` Profile: ${risk}`
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        let activeDemoChart = null;
+
+        function renderDemographicChart(drug) {
+            const ctx = document.getElementById('demographicChart').getContext('2d');
+            if (activeDemoChart) activeDemoChart.destroy();
+
+            const groups = ["Pediatric", "Adult", "Senior", "Male", "Female"];
+            const sideEffects = drug.side_effects.slice(0, 5); // Focus on top 5 for clarity
+            const colors = ['#60a5fa', '#3b82f6', '#1d4ed8', '#f472b6', '#db2777'];
+
+            const datasets = groups.map((group, i) => ({
+                label: group,
+                data: sideEffects.map(s => {
+                    let m = { "Pediatric": 1, "Adult": 1, "Senior": 1, "Male": 1, "Female": 1 };
+                    try { m = JSON.parse(s.demographics || '{}'); } catch (e) { }
+                    return parseFloat(m[group]) || 1.0;
+                }),
+                backgroundColor: colors[i],
+                borderRadius: 4,
+                barThickness: 6
+            }));
+
+            activeDemoChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sideEffects.map(s => s.name),
+                    datasets: datasets
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: isMobile ? { bottom: 10, left: 0, right: 10, top: 0 } : 0
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Risk Multiplier (x1.0 = Clinical Baseline)',
+                                font: { size: isMobile ? 9 : 11, weight: '600' },
+                                color: '#475569'
+                            },
+                            min: 0,
+                            suggestedMax: 2.5,
+                            grid: {
+                                color: (context) => context.tick.value === 1.0 ? '#3b82f6' : '#f3f4f6',
+                                lineWidth: (context) => context.tick.value === 1.0 ? 2 : 1
+                            },
+                            ticks: {
+                                font: { size: isMobile ? 8 : 10 },
+                                callback: function (value) {
+                                    return 'x' + value.toFixed(1);
+                                }
+                            }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { font: { size: isMobile ? 8 : 10 } }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: { boxWidth: isMobile ? 8 : 12, font: { size: isMobile ? 9 : 10 } }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1f2937',
+                            callbacks: {
+                                label: function (context) {
+                                    return ` ${context.dataset.label}: x${context.parsed.x.toFixed(1)} Risk`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showSampleDrug() {
+            if (allDrugs.length > 0) {
+                selectDrug(allDrugs[0].id);
+            } else {
+                showNotification("No medicines in history to analyze. Search for one first!");
+                document.getElementById('query').focus();
+            }
+        }
+
+        function closeDetails() {
+            document.getElementById('homeView').style.display = 'flex';
+            document.getElementById('detailView').style.display = 'none';
+            if (document.getElementById('floatingSearch')) {
+                document.getElementById('floatingSearch').style.display = 'block';
+            }
+            document.querySelectorAll('.drug-item').forEach(el => el.classList.remove('active'));
+        }
+
+        function showModal(drug) {
+            const modal = document.getElementById('detailsModal');
+            document.getElementById('modalTitle').innerText = drug.name;
+            const body = document.getElementById('modalBody');
+
+            // Add column headers
+            body.innerHTML = `
+                <div class="modal-list-header">
+                    <span>Clinical Observation</span>
+                    <span>Incidence Rate</span>
+                </div>
+            `;
+
+            drug.side_effects.forEach(s => {
+                body.innerHTML += `
+                    <div class="detail-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong>${s.name}</strong>
+                            <span style="font-weight: 600; color: #1e293b;">${s.probability}%</span>
+                        </div>
+                    </div>
+                `;
+            });
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('detailsModal').style.display = 'none';
+        }
+
+        async function sendQuery() {
+            const queryInput = document.getElementById('query');
+            const searchBtn = document.getElementById('searchBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            const loadingText = document.getElementById('loading');
+
+            const queryText = queryInput.value;
+            if (!queryText) return;
+
+            // Set loading state
+            searchBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'block';
+            loadingText.style.display = 'block';
+            queryInput.value = '';
+
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: queryText })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    let msg = "Something went wrong. Please try again.";
+                    if (data.error && (data.error.includes("quota") || data.error.includes("rate_limit") || data.error.includes("429"))) {
+                        msg = "API Quota Limit Reached. Please try again in 60 seconds.";
+                    }
+                    showNotification(msg);
+                    throw new Error(msg);
+                }
+
+                if (data.drugs) {
+                    const oldIds = allDrugs.map(d => d.id);
+                    refreshUI(data.drugs);
+
+                    const responseText = (data.response || "").toLowerCase();
+                    const queryLower = queryText.toLowerCase();
+
+                    // Priority matching logic
+                    const newDrug = data.drugs.find(d => !oldIds.includes(d.id));
+                    const matchingDrug = data.drugs.find(d =>
+                        queryLower.includes(d.name.toLowerCase()) ||
+                        responseText.includes(d.name.toLowerCase())
+                    );
+                    const latestDrug = data.drugs.reduce((prev, current) => (prev.id > current.id) ? prev : current, data.drugs[0]);
+
+                    const target = newDrug || matchingDrug || latestDrug;
+                    if (target) {
+                        selectDrug(target.id);
+                    }
+                }
+            } catch (err) {
+                console.error("Search failed:", err);
+            } finally {
+                searchBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnSpinner.style.display = 'none';
+                loadingText.style.display = 'none';
+            }
+        }
+
+        document.getElementById('query').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendQuery();
+        });
+
+        window.onclick = function (event) {
+            if (event.target == document.getElementById('detailsModal')) closeModal();
+        }
+
+        function showNotification(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'notification';
+            toast.innerHTML = `<span>⚠️</span> ${msg}`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // Centralized Event Listener for Sidebar, Drug Clicks, and Deletions
+        document.addEventListener('click', (e) => {
+            const deleteTrigger = e.target.closest('.delete-trigger');
+            if (deleteTrigger) {
+                e.stopPropagation();
+                const id = parseInt(deleteTrigger.dataset.id);
+                deleteDrug(id);
+                return;
+            }
+
+            const trigger = e.target.closest('.drug-trigger');
+            if (trigger) {
+                const id = parseInt(trigger.dataset.id);
+                selectDrug(id);
+                if (window.innerWidth <= 1024) toggleSidebar(false);
+            }
+        });
+
+        function toggleSidebar(force) {
+            const sidebar = document.getElementById('sidebar');
+            const mainToggle = document.getElementById('mainToggle');
+            const isClosing = force === false || (force !== true && sidebar.classList.contains('active'));
+
+            if (isClosing) {
+                sidebar.classList.remove('active');
+                document.body.classList.remove('sidebar-active');
+                if (mainToggle) mainToggle.style.opacity = '1';
+                document.body.style.overflow = '';
+            } else {
+                sidebar.classList.add('active');
+                document.body.classList.add('sidebar-active');
+                if (mainToggle) mainToggle.style.opacity = '0';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+    </script>
+    <footer>
+        <div class="footer-left">
+            <span>SenseMed v0.1.0-beta</span>
+        </div>
+        <div class="footer-right">
+            <span>Developed by <strong>Mike Phaul Banderada</strong></span>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-tiktok"></i></a>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
